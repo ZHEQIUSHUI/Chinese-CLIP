@@ -11,7 +11,7 @@ import torch.onnx
 from onnx import load_model, save_model
 from onnxmltools.utils import convert_float_to_float16
 import cn_clip.clip as clip
-from clip.utils import _MODELS, _MODEL_INFO, _download, available_models, create_model, image_transform
+from cn_clip.clip.utils import _MODELS, _MODEL_INFO, _download, available_models, create_model, image_transform
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -121,16 +121,16 @@ if __name__ == '__main__':
                     opset_version=13,
                     verbose=True)
         # convert text FP16 ONNX model based on the FP32 model
-        text_fp16_onnx_path = f"{args.save_onnx_path}.txt.fp16.onnx"
-        text_fp32_onnx_model = load_model(text_fp32_onnx_path)
-        text_fp16_onnx_model = convert_float_to_float16(text_fp32_onnx_model, keep_io_types=True, disable_shape_infer=True)
-        save_model(text_fp16_onnx_model,
-                    text_fp16_onnx_path,
-                    location="{}.extra_file".format(os.path.split(text_fp16_onnx_path)[1]),
-                    save_as_external_data=True,
-                    all_tensors_to_one_file=True,
-                    size_threshold=1024,
-                    convert_attribute=True)
+        # text_fp16_onnx_path = f"{args.save_onnx_path}.txt.fp16.onnx"
+        # text_fp32_onnx_model = load_model(text_fp32_onnx_path)
+        # text_fp16_onnx_model = convert_float_to_float16(text_fp32_onnx_model, keep_io_types=True, disable_shape_infer=True)
+        # save_model(text_fp16_onnx_model,
+        #             text_fp16_onnx_path,
+        #             location="{}.extra_file".format(os.path.split(text_fp16_onnx_path)[1]),
+        #             save_as_external_data=True,
+        #             all_tensors_to_one_file=True,
+        #             size_threshold=1024,
+        #             convert_attribute=True)
 
     if args.convert_vision:
         # convert vision FP32 ONNX model
@@ -143,29 +143,29 @@ if __name__ == '__main__':
                     output_names=['unnorm_image_features'],
                     export_params=True,
                     do_constant_folding=False,
-                    opset_version=13,
+                    opset_version=14,
                     verbose=True)
         # for ViT-H-14 FP32 model, make another conversion to deal with the generated small files
         if args.model_arch == "ViT-H-14":
             packing_small_onnx_files(vision_fp32_onnx_path)
             vision_fp32_onnx_hasextra = True
         # convert vision FP16 ONNX model based on the FP32 model
-        vision_fp16_onnx_path = f"{args.save_onnx_path}.img.fp16.onnx"
-        vision_fp32_onnx_model = load_model(vision_fp32_onnx_path)
-        vision_fp16_onnx_model = convert_float_to_float16(vision_fp32_onnx_model, keep_io_types=True, disable_shape_infer=True)
-        save_model(vision_fp16_onnx_model,
-                    vision_fp16_onnx_path,
-                    location="{}.extra_file".format(os.path.split(vision_fp16_onnx_path)[1]),
-                    save_as_external_data=True,
-                    all_tensors_to_one_file=True,
-                    size_threshold=1024,
-                    convert_attribute=True)
+        # vision_fp16_onnx_path = f"{args.save_onnx_path}.img.fp16.onnx"
+        # vision_fp32_onnx_model = load_model(vision_fp32_onnx_path)
+        # vision_fp16_onnx_model = convert_float_to_float16(vision_fp32_onnx_model, keep_io_types=True, disable_shape_infer=True)
+        # save_model(vision_fp16_onnx_model,
+        #             vision_fp16_onnx_path,
+        #             location="{}.extra_file".format(os.path.split(vision_fp16_onnx_path)[1]),
+        #             save_as_external_data=True,
+        #             all_tensors_to_one_file=True,
+        #             size_threshold=1024,
+        #             convert_attribute=True)
 
     print("Finished PyTorch to ONNX conversion...")
     if args.convert_text:
         print(f">>> The text FP32 ONNX model is saved at {text_fp32_onnx_path}")
-        print(f">>> The text FP16 ONNX model is saved at {text_fp16_onnx_path} with extra file {text_fp16_onnx_path}.extra_file")
+        # print(f">>> The text FP16 ONNX model is saved at {text_fp16_onnx_path} with extra file {text_fp16_onnx_path}.extra_file")
     if args.convert_vision:
         print(f">>> The vision FP32 ONNX model is saved at {vision_fp32_onnx_path}" + \
             (f" with extra file {vision_fp32_onnx_path}.extra_file" if vision_fp32_onnx_hasextra else ""))
-        print(f">>> The vision FP16 ONNX model is saved at {vision_fp16_onnx_path} with extra file {vision_fp16_onnx_path}.extra_file")
+        # print(f">>> The vision FP16 ONNX model is saved at {vision_fp16_onnx_path} with extra file {vision_fp16_onnx_path}.extra_file")

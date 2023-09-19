@@ -390,14 +390,20 @@ class CLIP(nn.Module):
     def encode_image(self, image, mask_ratio=0):
         if isinstance(self.visual, ModifiedResNet):
             # mask_ratio > 0 (FLIP strategy) is currently only implemented for VisualTransformer.
-            return self.visual(image.type(self.dtype))
-        return self.visual(image.type(self.dtype), mask_ratio)
+            image_features = self.visual(image.type(self.dtype))
+            image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+            return image_features
+        image_features =  self.visual(image.type(self.dtype), mask_ratio)
+        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+        return image_features
 
     def encode_text(self, text):
         pad_index = self.tokenizer.vocab['[PAD]']
         attn_mask = text.ne(pad_index).type(self.dtype)
         x = self.bert(text, attention_mask=attn_mask)[0].type(self.dtype) # [batch_size, seq_length, hidden_size]
-        return x[:, 0, :] @ self.text_projection
+        text_features =  x[:, 0, :] @ self.text_projection
+        text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+        return text_features
 
     def forward(self, image, text, mask_ratio=0):
         assert image is not None or text is not None, "text and image cannot both be None!"
@@ -409,9 +415,6 @@ class CLIP(nn.Module):
         image_features = self.encode_image(image, mask_ratio)
         text_features = self.encode_text(text)
 
-        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
-        text_features = text_features / text_features.norm(dim=-1, keepdim=True)
-
         return image_features, text_features, self.logit_scale.exp()
 
     def get_similarity(self, image, text):
@@ -419,16 +422,16 @@ class CLIP(nn.Module):
         text_features = self.encode_text(text)
 
         # normalized features
-        image_features = image_features / image_features.norm(dim=1, keepdim=True)
-        text_features = text_features / text_features.norm(dim=1, keepdim=True)
+        # image_features = image_features / image_features.norm(dim=1, keepdim=True)
+        # text_features = text_features / text_features.norm(dim=1, keepdim=True)
 
         # cosine similarity as logits
-        logit_scale = self.logit_scale.exp()
+        logit_scale = 100 #self.logit_scale.exp()
         logits_per_image = logit_scale * image_features @ text_features.t()
         logits_per_text = logits_per_image.t()
 
         # shape = [global_batch_size, global_batch_size]
-        return logits_per_image, logits_per_text
+        return logits_per_image.softmax(1), logits_per_text.softmax(1)
 
 
 def convert_models_to_fp32(model):
