@@ -115,8 +115,8 @@ if __name__ == '__main__':
         torch.onnx.export(model,
                     (None, text),
                     text_fp32_onnx_path,
-                    input_names=['text'],
-                    output_names=['unnorm_text_features'],
+                    input_names=['texts'],
+                    output_names=['text_features'],
                     export_params=True,
                     opset_version=13,
                     verbose=True)
