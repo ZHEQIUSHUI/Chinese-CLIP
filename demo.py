@@ -9,8 +9,9 @@ class FeatureMatMul(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
 
-    def forward(self, logits_per_image, logits_per_text):
+    def forward(self, image_features, text_features):
         logit_scale = 100  # self.logit_scale.exp()
+        image_features = image_features / image_features.norm(dim=1, keepdim=True)
         logits_per_image = logit_scale * image_features @ text_features.t()
         logits_per_text = logits_per_image.t()
 

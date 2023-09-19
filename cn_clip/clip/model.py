@@ -391,10 +391,8 @@ class CLIP(nn.Module):
         if isinstance(self.visual, ModifiedResNet):
             # mask_ratio > 0 (FLIP strategy) is currently only implemented for VisualTransformer.
             image_features = self.visual(image.type(self.dtype))
-            image_features = image_features / image_features.norm(dim=-1, keepdim=True)
             return image_features
         image_features =  self.visual(image.type(self.dtype), mask_ratio)
-        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
         return image_features
 
     def encode_text(self, text):
@@ -422,7 +420,7 @@ class CLIP(nn.Module):
         text_features = self.encode_text(text)
 
         # normalized features
-        # image_features = image_features / image_features.norm(dim=1, keepdim=True)
+        image_features = image_features / image_features.norm(dim=1, keepdim=True)
         # text_features = text_features / text_features.norm(dim=1, keepdim=True)
 
         # cosine similarity as logits
