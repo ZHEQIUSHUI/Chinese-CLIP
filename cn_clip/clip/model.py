@@ -396,8 +396,11 @@ class CLIP(nn.Module):
         return image_features
 
     def encode_text(self, text):
-        pad_index = self.tokenizer.vocab['[PAD]']
-        attn_mask = text.ne(pad_index).type(self.dtype)
+        # pad_index = self.tokenizer.vocab['[PAD]']
+        # attn_mask = text.ne(pad_index).type(self.dtype)
+        # attn_mask = text.clone()
+        # attn_mask[attn_mask>0] = 1
+        attn_mask = text.type(torch.bool)
         x = self.bert(text, attention_mask=attn_mask)[0].type(self.dtype) # [batch_size, seq_length, hidden_size]
         text_features =  x[:, 0, :] @ self.text_projection
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
