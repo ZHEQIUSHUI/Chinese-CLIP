@@ -1,5 +1,6 @@
 import numpy as np
 import cn_clip.clip as clip
+import torch
 
 texts = clip.tokenize([
     "穿红色衣服的男人",
@@ -18,7 +19,7 @@ texts = clip.tokenize([
     "一地的垃圾，塑料瓶，果皮等",
     "天空中的飞机",
     "一群人在喝咖啡",
-    ]).numpy()
+    ]).to(torch.int32).numpy()
 
 for idx,text in enumerate(texts):
     text = text.reshape(1,-1)

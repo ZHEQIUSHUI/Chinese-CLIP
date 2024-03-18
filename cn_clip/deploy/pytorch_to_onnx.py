@@ -110,7 +110,7 @@ if __name__ == '__main__':
     resolution = _MODEL_INFO[args.model_arch]['input_resolution']
     preprocess = image_transform(resolution)
     image = preprocess(Image.new('RGB', (resolution, resolution))).unsqueeze(0)
-    text = clip.tokenize([""], context_length=args.context_length)
+    text = clip.tokenize([""], context_length=args.context_length).to(torch.int32)
 
     # perform conversions, ONNX text and vision encoders will be saved into separated files
     if args.convert_text:
